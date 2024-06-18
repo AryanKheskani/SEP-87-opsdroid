@@ -18,7 +18,7 @@ from opsdroid.const import (
 from opsdroid.core import OpsDroid
 from opsdroid.helper import get_config_option
 from opsdroid.loader import Loader
-from opsdroid.logging import configure_logging
+from opsdroid.opsdroid_logging import configure_logging
 
 _LOGGER = logging.getLogger("opsdroid")
 

@@ -13,7 +13,7 @@ from opsdroid.cli.utils import (
 from opsdroid.configuration import load_config_file
 from opsdroid.const import DEFAULT_CONFIG_LOCATIONS
 from opsdroid.core import OpsDroid
-from opsdroid.logging import configure_logging
+from opsdroid.opsdroid_logging import configure_logging
 
 gettext.install("opsdroid")
 _LOGGER = logging.getLogger("opsdroid")

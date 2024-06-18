@@ -7,14 +7,14 @@ import tempfile
 
 import rich.logging
 
-import opsdroid.logging as opsdroid
+from opsdroid.opsdroid_logging import report_coverage
+import opsdroid.opsdroid_logging as opsdroid
 import pytest
 from opsdroid.cli.start import configure_lang
 from rich.logging import RichHandler
 from io import StringIO
 
 configure_lang({})
-
 
 def test_set_logging_level():
     assert logging.DEBUG == opsdroid.get_logging_level("debug")
@@ -271,3 +271,105 @@ def test_configure_whitelist_and_blacklist(capsys, white_and_black_config):
 
     assert log1 in captured.err
     assert log2 in captured.err
+    
+
+report_coverage()
+
+
+#########################################################################################################################################################################################
+
+
+import logging
+import opsdroid.opsdroid_logging as opsdroid
+import pytest
+
+# Mock the logger to test warning messages
+from unittest.mock import MagicMock, patch
+
+# Additional imports
+from io import StringIO
+
+#ParsingFilter.__init__
+def test_parsing_filter_init_whitelist_and_blacklist():
+    config = {"filter": {"whitelist": ["opsdroid"], "blacklist": ["opsdroid.core"]}}
+    filter_obj = opsdroid.ParsingFilter(config, config["filter"])
+    assert filter_obj.config == config
+    assert len(filter_obj.parse_list) == 1  # Only whitelist should be used
+
+#REMOVE ----------------------------------------------------------------------------------------------------------
+def test_parsing_filter_init_only_whitelist():
+    config = {"filter": {"whitelist": ["opsdroid"]}}
+    filter_obj = opsdroid.ParsingFilter(config, config["filter"])
+    assert filter_obj.config == config
+    assert len(filter_obj.parse_list) == 1  # Whitelist should be used
+
+def test_parsing_filter_init_key_error():
+    config = {}
+    filter_obj = opsdroid.ParsingFilter(config, {"whitelist": ["opsdroid"]})
+    assert filter_obj.parse_list[0].name == "opsdroid"  # Fallback to whitelist
+
+#ParsingFilter.filter
+def test_parsing_filter_filter_no_filter():
+    config = {}
+    filter_obj = opsdroid.ParsingFilter(config, config)
+    record = logging.LogRecord(name="opsdroid", level=logging.INFO, pathname="", lineno=0, msg="", args=(), exc_info=None)
+    assert filter_obj.filter(record)  # Should return True
+
+#REMOVE ----------------------------------------------------------------------------------------------------------
+def test_parsing_filter_filter_whitelist():
+    config = {"filter": {"whitelist": ["opsdroid"]}}
+    filter_obj = opsdroid.ParsingFilter(config, config["filter"])
+    record = logging.LogRecord(name="opsdroid", level=logging.INFO, pathname="", lineno=0, msg="", args=(), exc_info=None)
+    assert filter_obj.filter(record)  # Should return True
+
+def test_parsing_filter_filter_blacklist():
+    config = {"filter": {"blacklist": ["opsdroid"]}}
+    filter_obj = opsdroid.ParsingFilter(config, config["filter"])
+    record = logging.LogRecord(name="opsdroid", level=logging.INFO, pathname="", lineno=0, msg="", args=(), exc_info=None)
+    assert not filter_obj.filter(record)  # Should return False
+
+#set_formatter_string
+def test_set_formatter_string_with_formatter():
+    config = {"formatter": "%(name)s:"}
+    formatter_str = opsdroid.set_formatter_string(config)
+    assert formatter_str == config["formatter"]
+
+#REMOVE x3 ----------------------------------------------------------------------------------------------------------
+def test_set_formatter_string_extended():
+    config = {"extended": True}
+    formatter_str = opsdroid.set_formatter_string(config)
+    assert ".%(funcName)s():" in formatter_str
+
+def test_set_formatter_string_timestamp():
+    config = {"timestamp": True}
+    formatter_str = opsdroid.set_formatter_string(config)
+    assert "%(asctime)s" in formatter_str
+
+def test_set_formatter_string_extended_and_timestamp():
+    config = {"extended": True, "timestamp": True}
+    formatter_str = opsdroid.set_formatter_string(config)
+    assert ".%(funcName)s():" in formatter_str
+    assert "%(asctime)s" in formatter_str
+
+def test_get_logging_level_critical():
+    assert opsdroid.get_logging_level("critical") == logging.CRITICAL
+
+def test_get_logging_level_error():
+    assert opsdroid.get_logging_level("error") == logging.ERROR
+
+def test_get_logging_level_warning():
+    assert opsdroid.get_logging_level("warning") == logging.WARNING
+
+def test_get_logging_level_debug():
+    assert opsdroid.get_logging_level("debug") == logging.DEBUG
+
+def test_get_logging_level_info():
+    assert opsdroid.get_logging_level("info") == logging.INFO
+
+def test_get_logging_level_default():
+    assert opsdroid.get_logging_level("") == logging.INFO
+
+def test_get_logging_level_invalid():
+    with pytest.raises(ValueError):
+        opsdroid.get_logging_level("invalid_level")
+

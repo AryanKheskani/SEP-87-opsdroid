@@ -166,3 +166,34 @@ class TestConstraints(asynctest.TestCase):
                 Message(text="Hello", user="user", target="#general", connector=None)
             )
             self.assertEqual(len(tasks), 3)  # match_always, match_event and the skill
+
+    async def test_constraint_callback_with_lookup_target(self):
+        # Test case where the message.connector has lookup_target attribute
+        mock_message = mock.Mock()
+        mock_message.target = "#general"
+        mock_message.connector = mock.Mock()
+        mock_message.connector.lookup_target = mock.Mock(return_value="#general")
+
+        result = constraints.constraint_callback(mock_message, rooms=["#general"])
+        self.assertTrue(result)
+
+    async def test_constraint_callback_without_lookup_target(self):
+        # Test case where the message.connector does not have lookup_target attribute
+        mock_message = mock.Mock()
+        mock_message.target = "#general"
+        mock_message.connector = mock.Mock()
+        del mock_message.connector.lookup_target
+
+        result = constraints.constraint_callback(mock_message, rooms=["#general"])
+        self.assertTrue(result)
+
+    async def test_constraint_callback_without_lookup_target_no_match(self):
+        # Test case where the message.connector does not have lookup_target attribute and room doesn't match
+        mock_message = mock.Mock()
+        mock_message.target = "#random"
+        mock_message.connector = mock.Mock()
+        del mock_message.connector.lookup_target
+
+        result = constraints.constraint_callback(mock_message, rooms=["#general"])
+        self.assertFalse(result)
+
