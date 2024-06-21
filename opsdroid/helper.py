@@ -483,29 +483,27 @@ class Timeout:
         """
         self.exception = e
 
-# example usage 1 for run() which covers branches before timout
+# example usage for run() 
 timeout = Timeout(2, "timed out", warn=True)
-print(timeout.run())  # should return true
+print(timeout.run())  
 
-# wait for timeout
 time.sleep(3)
 try:
-    print(timeout.run())  # should return false
+    print(timeout.run())  
 except Exception as e:
     print(e)  
 
-# example usage 2 for run() which covers branches after timout
 timeout = Timeout(2, "timed out", warn= False) 
 print(timeout.run())
 
-time.sleep(3)  # wait for timout
+time.sleep(3)  
 try:
-    print(timeout.run())  # should raise.exception and not print warning
+    print(timeout.run())  
 except Exception as e:
-    print(e)  # print exception
+    print(e) 
 
 
-# example usage 1 for get_parser_config()
+# example usage for get_parser_config()
 modules = [
     {"config": {"name": "parser1", "param": "value1"}},
     {"config": {"name": "parser2", "param": "value2"}}
@@ -514,7 +512,6 @@ modules = [
 parser_config = get_parser_config("parser1", modules)
 print(parser_config)
 
-# example usage 2 for get_config_parser
 parsers = []
 
 config = get_parser_config("dialogflow", parsers)
