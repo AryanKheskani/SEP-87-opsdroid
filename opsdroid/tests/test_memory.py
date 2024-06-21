@@ -54,6 +54,10 @@ async def test_no_databases_get():
     result = await memory.get("test_key")
     assert result is None
 
+    assert await memory.get("test") is None
+    memory.databases = []  
+    await memory.get("key2", "default")
+
 
 @pytest.mark.anyio
 async def test_multiple_databases_put(mocker):
@@ -71,3 +75,4 @@ async def test_multiple_databases_delete(mocker):
 
     await memory.delete("test_key")
     assert all(db.delete.called for db in memory.databases)
+

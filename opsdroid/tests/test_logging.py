@@ -320,7 +320,6 @@ def test_parsing_filter_filter_no_filter():
     record = logging.LogRecord(name="opsdroid", level=logging.INFO, pathname="", lineno=0, msg="", args=(), exc_info=None)
     assert filter_obj.filter(record)  # Should return True
 
-#REMOVE ----------------------------------------------------------------------------------------------------------
 def test_parsing_filter_filter_whitelist():
     config = {"filter": {"whitelist": ["opsdroid"]}}
     filter_obj = opsdroid.ParsingFilter(config, config["filter"])
@@ -339,7 +338,6 @@ def test_set_formatter_string_with_formatter():
     formatter_str = opsdroid.set_formatter_string(config)
     assert formatter_str == config["formatter"]
 
-#REMOVE x3 ----------------------------------------------------------------------------------------------------------
 def test_set_formatter_string_extended():
     config = {"extended": True}
     formatter_str = opsdroid.set_formatter_string(config)

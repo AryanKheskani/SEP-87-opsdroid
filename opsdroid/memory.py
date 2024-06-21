@@ -167,11 +167,6 @@ if __name__ == "__main__":
         async def put(self, key, value):
             self.storage[key] = value
 
-        async def delete(self, key):
-            if key in self.storage:
-                del self.storage[key]
-
-
     async def main():
         memory = Memory()
         memory.databases.append(MockDatabase())
