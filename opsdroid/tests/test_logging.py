@@ -296,17 +296,22 @@ def test_parsing_filter_init_whitelist_and_blacklist():
     assert filter_obj.config == config
     assert len(filter_obj.parse_list) == 1  # Only whitelist should be used
 
-#REMOVE ----------------------------------------------------------------------------------------------------------
 def test_parsing_filter_init_only_whitelist():
     config = {"filter": {"whitelist": ["opsdroid"]}}
     filter_obj = opsdroid.ParsingFilter(config, config["filter"])
     assert filter_obj.config == config
     assert len(filter_obj.parse_list) == 1  # Whitelist should be used
 
-def test_parsing_filter_init_key_error():
+def test_parsing_filter_init_only_blacklist():
+    config = {"filter": {"blacklist": ["opsdroid"]}}
+    filter_obj = opsdroid.ParsingFilter(config, config["filter"])
+    assert filter_obj.config == config
+    assert len(filter_obj.parse_list) == 1  # Blacklist should be used
+
+def test_parsing_filter_init_no_filter():
     config = {}
-    filter_obj = opsdroid.ParsingFilter(config, {"whitelist": ["opsdroid"]})
-    assert filter_obj.parse_list[0].name == "opsdroid"  # Fallback to whitelist
+    filter_obj = opsdroid.ParsingFilter(config, config)
+    assert filter_obj.parse_list == []  # No filter should be used
 
 #ParsingFilter.filter
 def test_parsing_filter_filter_no_filter():

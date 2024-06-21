@@ -155,10 +155,10 @@ if __name__ == "__main__":
     msg_user = MockMessage(target="room3", user="user1", connector=MockConnector(name="connector3"))
     msg_connector = MockMessage(target="room3", user="user3", connector=MockConnector(name="connector1"))
 
-    print(skill_room(msg_room))  # Expected to pass
-    print(skill_room(msg_room_lookup))  # Expected to pass with lookup_target branch
-    print(skill_user(msg_user))  # Expected to pass
-    print(skill_connector(msg_connector))  # Expected to pass
+    print(skill_room(msg_room))  
+    print(skill_room(msg_room_lookup))  
+    print(skill_user(msg_user))  
+    print(skill_connector(msg_connector))  
 
     # Invert the decorators
     @constrain_rooms(["room1", "room2"], invert=True)
@@ -173,9 +173,8 @@ if __name__ == "__main__":
     def skill_connector_invert(message):
         return "Inverted connector constraint passed"
 
-    print(skill_room_invert(msg_room))  # Expected to fail (invert=True)
-    print(skill_user_invert(msg_user))  # Expected to fail (invert=True)
-    print(skill_connector_invert(msg_connector))  # Expected to fail (invert=True)
+    print(skill_room_invert(msg_room)) 
+    print(skill_user_invert(msg_user))  
+    print(skill_connector_invert(msg_connector))  
 
-    # Run coverage report
     report_coverage()

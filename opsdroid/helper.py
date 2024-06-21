@@ -9,6 +9,41 @@ import json
 
 import nbformat
 from nbconvert import PythonExporter
+import pytest
+import time
+
+branch_coverage = {}
+
+def initialize_coverage(func_name, num_branches):
+    branch_coverage[func_name] = [False] * num_branches
+
+def mark_branch(func_name, branch_id):
+    branch_coverage[func_name][branch_id] = True
+
+def report_coverage():
+    total_branches = 0
+    reached_branches = 0
+
+    for func_name, branches in branch_coverage.items():
+        func_total = len(branches)
+        func_reached = sum(branches)
+
+        total_branches += func_total
+        reached_branches += func_reached
+
+        coverage_percentage = (func_reached / func_total) * 100 if func_total > 0 else 0
+
+        print(f"Coverage for {func_name}:")
+        for i, reached in enumerate(branches):
+            print(f"  Branch {i}: {'Reached! ✅' if reached else 'Not Reached ❌'}")
+        print(f"  Function coverage: {coverage_percentage:.2f}%\n")
+
+    overall_coverage = (reached_branches / total_branches) * 100 if total_branches > 0 else 0
+    print(f"Overall branch coverage: {overall_coverage:.2f}%")
+
+# initialize_coverage("update_pre_0_17_config_format", 2)
+initialize_coverage("run", 6)
+initialize_coverage("get_parser_config", 3)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,7 +126,7 @@ def convert_dictionary(modules):
 def update_pre_0_17_config_format(config):
     """Update each configuration param that contains 'name'.
 
-    We decided to ditch the name param and instead divide each module by it's name.
+    We decided to ditch the name param and instead divide each module by its name.
     This change was due to validation issues. Now instead of a list of dictionaries
     without any pointer to what they are, we are using the name of the module and then a
     dictionary containing the configuration params for said module.
@@ -106,11 +141,15 @@ def update_pre_0_17_config_format(config):
     updated_config = {}
     for config_type, modules in config.items():
         if config_type in ("parsers", "connectors", "skills", "databases"):
+            # mark_branch("update_pre_0_17_config_format", 0)
             updated_config[config_type] = convert_dictionary(modules)
+        # else:
+        #     mark_branch("update_pre_0_17_config_format", 1)
 
     config.update(updated_config)
 
     return config
+
 
 
 def file_is_ipython_notebook(path):
@@ -199,10 +238,14 @@ def get_parser_config(name, modules):
 
     """
     if modules:
+        mark_branch("get_parser_config", 0)
         for parser in modules:
             if parser["config"]["name"] == name:
+                mark_branch("get_parser_config", 1)
                 return parser["config"]
-    return None
+    else:
+        mark_branch("get_parser_config", 2)
+        return None
 
 
 def get_config_option(options, config, found, not_found):
@@ -411,18 +454,24 @@ class Timeout:
         timeout has elapsed. It will then raise or return ``False``.
         """
         if not self.running:
+            mark_branch("run", 0)
             self.start = datetime.datetime.now()
             self.running = True
+        else:
+            mark_branch("run", 1)
 
-        if (
-            self.start + datetime.timedelta(seconds=self.timeout)
-            < datetime.datetime.now()
-        ):
+        if self.start + datetime.timedelta(seconds=self.timeout) < datetime.datetime.now():
+            mark_branch("run", 2)
             if self.warn:
+                mark_branch("run", 3)
                 warnings.warn(self.error_message)
                 return False
             else:
+                mark_branch("run", 4)
                 raise self.exception
+        else:
+            mark_branch("run", 5)
+
         return True
 
     def set_exception(self, e):
@@ -433,3 +482,43 @@ class Timeout:
         the thing you are trying rather than a TimeoutException.
         """
         self.exception = e
+
+# example usage 1 for run() which covers branches before timout
+timeout = Timeout(2, "timed out", warn=True)
+print(timeout.run())  # should return true
+
+# wait for timeout
+time.sleep(3)
+try:
+    print(timeout.run())  # should return false
+except Exception as e:
+    print(e)  
+
+# example usage 2 for run() which covers branches after timout
+timeout = Timeout(2, "timed out", warn= False) 
+print(timeout.run())
+
+time.sleep(3)  # wait for timout
+try:
+    print(timeout.run())  # should raise.exception and not print warning
+except Exception as e:
+    print(e)  # print exception
+
+
+# example usage 1 for get_parser_config()
+modules = [
+    {"config": {"name": "parser1", "param": "value1"}},
+    {"config": {"name": "parser2", "param": "value2"}}
+]
+
+parser_config = get_parser_config("parser1", modules)
+print(parser_config)
+
+# example usage 2 for get_config_parser
+parsers = []
+
+config = get_parser_config("dialogflow", parsers)
+
+assert not config
+
+report_coverage()

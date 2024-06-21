@@ -32,6 +32,7 @@ def report_coverage():
     print(f"Overall branch coverage: {overall_coverage:.2f}%")
 
 initialize_coverage("_get_from_database", 3)
+initialize_coverage("_put_to_database", 3)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -131,8 +132,13 @@ class Memory:
 
         """
         if self.databases:
+            mark_branch("_put_to_database", 0)
             for database in self.databases:
+                mark_branch("_put_to_database", 1)
                 await database.put(key, data)
+        else:
+            mark_branch("_put_to_database", 2)
+
 
     async def _delete_from_database(self, key):
         """Delete data from databases for a given key.
@@ -170,12 +176,20 @@ if __name__ == "__main__":
         memory = Memory()
         memory.databases.append(MockDatabase())
 
-        #async def test_empty_memory(memory):
+        #Test get from database
         assert await memory.get("test") is None
-
-        #Test _get_from_database when not self.databases
         memory.databases = []  
-        await memory.get("key2", "default")  # Expected: default
+        await memory.get("key2", "default")
+
+        #Test put to database
+        memory = Memory()
+        await memory.put("test_key", "test_value")
+        assert all(db.put.called for db in memory.databases)
+        #added tests to reach branches 0 and 1
+        mock_db = MockDatabase()
+        memory.databases.append(mock_db)
+        await memory.put("test_key", "test_value")
+        assert mock_db.storage["test_key"] == "test_value"
 
     asyncio.run(main())
 

@@ -46,3 +46,28 @@ async def test_database_callouts(mocker, memory):
     memory.databases[0].reset_mock()
     await memory.delete("test")
     assert memory.databases[0].delete.called
+
+
+@pytest.mark.anyio
+async def test_no_databases_get():
+    memory = Memory()
+    result = await memory.get("test_key")
+    assert result is None
+
+
+@pytest.mark.anyio
+async def test_multiple_databases_put(mocker):
+    memory = Memory()
+    memory.databases = [mocker.AsyncMock(), mocker.AsyncMock()]
+
+    await memory.put("test_key", "test_value")
+    assert all(db.put.called for db in memory.databases)
+
+
+@pytest.mark.anyio
+async def test_multiple_databases_delete(mocker):
+    memory = Memory()
+    memory.databases = [mocker.AsyncMock(), mocker.AsyncMock()]
+
+    await memory.delete("test_key")
+    assert all(db.delete.called for db in memory.databases)

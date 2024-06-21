@@ -2,6 +2,10 @@ import os
 import datetime
 import tempfile
 
+import pytest
+from opsdroid.helper import Timeout, update_pre_0_17_config_format, TimeoutException
+import warnings
+
 from opsdroid.helper import (
     del_rw,
     file_is_ipython_notebook,
@@ -206,3 +210,27 @@ class TestJSONDecoder:
         config = get_parser_config("dialogflow", parsers)
 
         assert not config
+
+# added tests
+
+    def test_run_not_running_no_warn(self):
+        timeout = Timeout(5, "Timeout occurred.")
+        timeout.running = False
+        timeout.warn = False
+        assert timeout.run() is True  
+
+    def test_run_running_with_warn(self):
+        timeout = Timeout(5, "Timeout occurred.", warn=True)
+        timeout.running = True
+        timeout.start = datetime.datetime.now() - datetime.timedelta(seconds=6)
+        with pytest.warns(UserWarning, match="Timeout occurred."):
+            assert timeout.run() is False  
+
+    def test_get_parser_config_multiple(self):
+        modules = [
+            {"config": {"name": "parser1", "param": "value1"}},
+            {"config": {"name": "parser2", "param": "value2"}},
+            {"config": {"name": "parser3", "param": "value3"}},
+        ]
+        config = get_parser_config("parser2", modules)
+        assert config == {"name": "parser2", "param": "value2"}
